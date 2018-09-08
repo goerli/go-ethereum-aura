@@ -1,0 +1,76 @@
+# Note: this config doesn't contain the genesis block.
+
+[Eth]
+NetworkId = 6283
+SyncMode = "fast"
+NoPruning = false
+LightPeers = 100
+DatabaseCache = 768
+TrieCache = 256
+TrieTimeout = 3600000000000
+MinerGasFloor = 8000000
+MinerGasCeil = 8000000
+MinerGasPrice = 1000000000
+MinerRecommit = 3000000000
+MinerNoverify = false
+EnablePreimageRecording = false
+
+[Eth.Ethash]
+CacheDir = "ethash"
+CachesInMem = 2
+CachesOnDisk = 3
+DatasetDir = "./.ethash"
+DatasetsInMem = 1
+DatasetsOnDisk = 2
+PowMode = 0
+
+[Eth.TxPool]
+Locals = []
+NoLocals = false
+Journal = "transactions.rlp"
+Rejournal = 3600000000000
+PriceLimit = 1
+PriceBump = 10
+AccountSlots = 16
+GlobalSlots = 4096
+AccountQueue = 64
+GlobalQueue = 1024
+Lifetime = 10800000000000
+
+[Eth.GPO]
+Blocks = 20
+Percentile = 60
+
+[Shh]
+MaxMessageSize = 1048576
+MinimumAcceptedPOW = 2e-01
+RestrictConnectionBetweenLightClients = true
+
+[Node]
+DataDir = "goerli"
+IPCPath = "geth.ipc"
+HTTPPort = 8545
+HTTPVirtualHosts = ["localhost"]
+HTTPModules = ["net", "web3", "eth", "shh"]
+WSPort = 8546
+WSModules = ["net", "web3", "eth", "shh"]
+
+[Node.P2P]
+MaxPeers = 25
+NoDiscovery = false
+BootstrapNodes = ["enode://ffc0d1bcc54dee616617be06edf2b3abdd200beb3765d4475ae9fb1750d98fb0d753b30e691912bb6775b7d442b71072c91becab2141191ce73de5b6d57ac723@40.114.122.81:30303", "enode://5b360e4baabf9e89e42e9241d4d00e7ff7a804759049be7dde30980ccce445f1fb0f91a4b9a4a28ee371b18d679fcced3cac3d73654059dd69c4a7b772bd4abf@40.87.8.76:30303", "enode://b95468b5fa80293c4f2fce2df7a02a52f0b259063d99a78a571afcb69f736ead79ca73412b37cb2336da75066f02439d2e50e22dedc1b78380a6ab36ebdda3fc@40.87.4.17:30303", "enode://3969e0879235c0b2bcc8957fc6d62d53763fcff0e750788eae029d40f1b4fa69f4d5a952ea3d02f85eb558faaae6bd5fbd1f394867edc6728c9fe7b9959329b0@40.87.1.35:30303"]
+BootstrapNodesV5 = ["enode://ffc0d1bcc54dee616617be06edf2b3abdd200beb3765d4475ae9fb1750d98fb0d753b30e691912bb6775b7d442b71072c91becab2141191ce73de5b6d57ac723@40.114.122.81:30303", "enode://5b360e4baabf9e89e42e9241d4d00e7ff7a804759049be7dde30980ccce445f1fb0f91a4b9a4a28ee371b18d679fcced3cac3d73654059dd69c4a7b772bd4abf@40.87.8.76:30303", "enode://b95468b5fa80293c4f2fce2df7a02a52f0b259063d99a78a571afcb69f736ead79ca73412b37cb2336da75066f02439d2e50e22dedc1b78380a6ab36ebdda3fc@40.87.4.17:30303", "enode://3969e0879235c0b2bcc8957fc6d62d53763fcff0e750788eae029d40f1b4fa69f4d5a952ea3d02f85eb558faaae6bd5fbd1f394867edc6728c9fe7b9959329b0@40.87.1.35:30303"]
+StaticNodes = []
+TrustedNodes = []
+ListenAddr = ":30303"
+EnableMsgEvents = false
+
+[Node.HTTPTimeouts]
+ReadTimeout = 30000000000
+WriteTimeout = 30000000000
+IdleTimeout = 120000000000
+
+[Dashboard]
+Host = "localhost"
+Port = 8080
+Refresh = 5000000000
