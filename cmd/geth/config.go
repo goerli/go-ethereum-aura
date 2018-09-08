@@ -108,6 +108,7 @@ func defaultNodeConfig() node.Config {
 }
 
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
+	fmt.Println("in make Config Node")
 	// Load defaults.
 	cfg := gethConfig{
 		Eth:       eth.DefaultConfig,
@@ -151,9 +152,17 @@ func enableWhisper(ctx *cli.Context) bool {
 }
 
 func makeFullNode(ctx *cli.Context) *node.Node {
+	fmt.Println("in make full node")
 	stack, cfg := makeConfigNode(ctx)
+	fmt.Printf("config is ", cfg)
+	fmt.Println("")
+	fmt.Printf("config.eth is %v ", cfg.Eth)
+	fmt.Println("")
+	fmt.Printf("config.eth genesis is %v", cfg.Eth.Genesis)
+	fmt.Println("")
 
 	utils.RegisterEthService(stack, &cfg.Eth)
+
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)

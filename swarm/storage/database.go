@@ -26,6 +26,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"runtime"
 )
 
 const openFileLimit = 128
@@ -35,6 +36,9 @@ type LDBDatabase struct {
 }
 
 func NewLDBDatabase(file string) (*LDBDatabase, error) {
+	pc, _, _, _ := runtime.Caller(1)
+	fmt.Println("Name of function: " + runtime.FuncForPC(pc).Name())
+	fmt.Println("in new LDB DB")
 	// Open the db
 	db, err := leveldb.OpenFile(file, &opt.Options{OpenFilesCacheCapacity: openFileLimit})
 	if err != nil {

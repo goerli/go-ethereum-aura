@@ -164,6 +164,8 @@ type CliqueConfig struct {
 
 // AuraConfig is the consensus engine configs for proof-of-authority based sealing.
 type AuraConfig struct {
+	Validators []common.Address `json:"validators"`
+	TInterval uint64 `json:"tInterval"`
 	Period uint64 `json:"period"` // Number of seconds between blocks to enforce
 	Epoch  uint64 `json:"epoch"`  // Epoch length to reset votes and checkpoint
 	Authorities []common.Address `json:"authorities"` // list of addresses of authorities

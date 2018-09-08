@@ -119,6 +119,10 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("inNew ")
+	pc, _, _, _ := runtime.Caller(1)
+	fmt.Println("Name of function: " + runtime.FuncForPC(pc).Name())
+
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
