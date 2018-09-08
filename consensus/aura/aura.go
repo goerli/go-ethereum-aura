@@ -595,8 +595,9 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 	// check if authorized to sign
 	step := uint64(time.Now().Unix()) % a.config.Period
 	turn := step % uint64(len(a.config.Authorities))
-	if a.signer == a.config.Authorities[turn] {
-		// sign block
+	if a.signer != a.config.Authorities[turn] {
+		// not authorized to sign
+		return errUnauthorized
 	}
 
 	// Bail out if we're unauthorized to sign a block
@@ -617,6 +618,7 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 	// 		}
 	// 	}
 	// }
+	
 	// Sweet, the protocol permits us to sign the block, wait for our time
 	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now()) // nolint: gosimple
 	//if header.Difficulty.Cmp(diffNoTurn) == 0 {
