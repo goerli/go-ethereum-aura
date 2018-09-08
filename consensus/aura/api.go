@@ -17,10 +17,9 @@
 package aura
 
 import (
-"github.com/ethereum/go-ethereum/common"
-"github.com/ethereum/go-ethereum/consensus"
-"github.com/ethereum/go-ethereum/core/types"
-"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // API is a user facing RPC API to allow controlling the signer and voting
@@ -30,49 +29,38 @@ type API struct {
 	aura *Aura
 }
 
-// GetSnapshot retrieves the state snapshot at a given block.
-func (api *API) GetSnapshot(number *rpc.BlockNumber) (*Snapshot, error) {
-	// Retrieve the requested block number (or current if none requested)
-	var header *types.Header
-	if number == nil || *number == rpc.LatestBlockNumber {
-		header = api.chain.CurrentHeader()
-	} else {
-		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
-	}
-	// Ensure we have an actually valid block and return its snapshot
-	if header == nil {
-		return nil, errUnknownBlock
-	}
-	return api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
-}
+// // GetSnapshot retrieves the state snapshot at a given block.
+// func (api *API) GetSnapshot(number *rpc.BlockNumber) (*Snapshot, error) {
+// 	// Retrieve the requested block number (or current if none requested)
+// 	var header *types.Header
+// 	if number == nil || *number == rpc.LatestBlockNumber {
+// 		header = api.chain.CurrentHeader()
+// 	} else {
+// 		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
+// 	}
+// 	// Ensure we have an actually valid block and return its snapshot
+// 	if header == nil {
+// 		return nil, errUnknownBlock
+// 	}
+// 	return api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
+// }
 
-// GetSnapshotAtHash retrieves the state snapshot at a given block.
-func (api *API) GetSnapshotAtHash(hash common.Hash) (*Snapshot, error) {
-	header := api.chain.GetHeaderByHash(hash)
-	if header == nil {
-		return nil, errUnknownBlock
-	}
-	return api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
-}
+// // GetSnapshotAtHash retrieves the state snapshot at a given block.
+// func (api *API) GetSnapshotAtHash(hash common.Hash) (*Snapshot, error) {
+// 	header := api.chain.GetHeaderByHash(hash)
+// 	if header == nil {
+// 		return nil, errUnknownBlock
+// 	}
+// 	return api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
+// }
 
 // GetSigners retrieves the list of authorized signers at the specified block.
 func (api *API) GetSigners(number *rpc.BlockNumber) ([]common.Address, error) {
-	// Retrieve the requested block number (or current if none requested)
-	var header *types.Header
 	if number == nil || *number == rpc.LatestBlockNumber {
-		header = api.chain.CurrentHeader()
-	} else {
-		header = api.chain.GetHeaderByNumber(uint64(number.Int64()))
-	}
-	// Ensure we have an actually valid block and return the signers from its snapshot
-	if header == nil {
 		return nil, errUnknownBlock
-	}
-	snap, err := api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
-	if err != nil {
-		return nil, err
-	}
-	return snap.signers(), nil
+	} 
+
+	return api.aura.config.Authorities, nil
 }
 
 // GetSignersAtHash retrieves the list of authorized signers at the specified block.
@@ -81,11 +69,16 @@ func (api *API) GetSignersAtHash(hash common.Hash) ([]common.Address, error) {
 	if header == nil {
 		return nil, errUnknownBlock
 	}
-	snap, err := api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
-	if err != nil {
-		return nil, err
-	}
-	return snap.signers(), nil
+
+	//blocknum := header.Number.Int64()
+	blocknum := rpc.BlockNumber(header.Number.Int64())
+	return api.GetSigners(&blocknum)
+
+	//snap, err := api.aura.snapshot(api.chain, header.Number.Uint64(), header.Hash(), nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return snap.signers(), nil
 }
 
 // Proposals returns the current proposals the node tries to uphold and vote on.
@@ -117,3 +110,4 @@ func (api *API) Discard(address common.Address) {
 
 	delete(api.aura.proposals, address)
 }
+
