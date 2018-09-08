@@ -20,13 +20,11 @@ import (
 	"bytes"
 	"errors"
 	"math/big"
-	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -91,6 +89,10 @@ var (
 	// errExtraSigners is returned if non-checkpoint block contain signer data in
 	// their extra-data fields.
 	errExtraSigners = errors.New("non-checkpoint block contains extra signer list")
+
+	// errInvalidValidatorSeal is returned if the extra data field length is not
+	// equal to the length of a seal
+	errInvalidExtraData = errors.New("extra data field in block header is invalid")
 
 	// errInvalidCheckpointSigners is returned if a checkpoint block contains an
 	// invalid list of signers (i.e. non divisible by 20 bytes, or not the correct
@@ -267,32 +269,21 @@ func (a *Aura) verifyHeader(chain consensus.ChainReader, header *types.Header, p
 	if header.Time.Cmp(big.NewInt(time.Now().Unix())) > 0 {
 		return consensus.ErrFutureBlock
 	}
+	// TODO: Are any of these necessary checks?
 	// Checkpoint blocks need to enforce zero beneficiary
-	checkpoint := (number % a.config.Epoch) == 0
-	if checkpoint && header.Coinbase != (common.Address{}) {
-		return errInvalidCheckpointBeneficiary
-	}
+	//checkpoint := (number % a.config.Epoch) == 0
+	//if checkpoint && header.Coinbase != (common.Address{}) {
+	//	return errInvalidCheckpointBeneficiary
+	//}
 	// Nonces must be 0x00..0 or 0xff..f, zeroes enforced on checkpoints
-	if !bytes.Equal(header.Nonce[:], nonceAuthVote) && !bytes.Equal(header.Nonce[:], nonceDropVote) {
-		return errInvalidVote
-	}
-	if checkpoint && !bytes.Equal(header.Nonce[:], nonceDropVote) {
-		return errInvalidCheckpointVote
-	}
-	// Check that the extra-data contains both the vanity and signature
-	if len(header.Extra) < extraVanity {
-		return errMissingVanity
-	}
-	if len(header.Extra) < extraVanity+extraSeal {
-		return errMissingSignature
-	}
-	// Ensure that the extra-data contains a signer list on checkpoint, but none otherwise
-	signersBytes := len(header.Extra) - extraVanity - extraSeal
-	if !checkpoint && signersBytes != 0 {
-		return errExtraSigners
-	}
-	if checkpoint && signersBytes%common.AddressLength != 0 {
-		return errInvalidCheckpointSigners
+	//if !bytes.Equal(header.Nonce[:], nonceAuthVote) && !bytes.Equal(header.Nonce[:], nonceDropVote) {
+	//	return errInvalidVote
+	//}
+
+	// Ensure that the extra-data contains a single signature
+	signersBytes := len(header.Extra) - extraSeal
+	if signersBytes != 0 {
+		return errInvalidExtraData
 	}
 	// Ensure that the mix digest is zero as we don't have fork protection currently
 	if header.MixDigest != (common.Hash{}) {
@@ -302,9 +293,9 @@ func (a *Aura) verifyHeader(chain consensus.ChainReader, header *types.Header, p
 	if header.UncleHash != uncleHash {
 		return errInvalidUncleHash
 	}
-	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
+	// Ensure that the block's difficulty is correct (it should be constant)
 	if number > 0 {
-		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
+		if header.Difficulty != chain.Config().Aura.Difficulty {
 			return errInvalidDifficulty
 		}
 	}
@@ -485,13 +476,13 @@ func (a *Aura) verifySeal(chain consensus.ChainReader, header *types.Header, par
 		}
 	}
 	// Ensure that the difficulty corresponds to the turn-ness of the signer
-	inturn := snap.inturn(header.Number.Uint64(), signer)
-	if inturn && header.Difficulty.Cmp(diffInTurn) != 0 {
-		return errInvalidDifficulty
-	}
-	if !inturn && header.Difficulty.Cmp(diffNoTurn) != 0 {
-		return errInvalidDifficulty
-	}
+	//inturn := snap.inturn(header.Number.Uint64(), signer)
+	//if inturn && header.Difficulty.Cmp(diffInTurn) != 0 {
+	//	return errInvalidDifficulty
+	//}
+	//if !inturn && header.Difficulty.Cmp(diffNoTurn) != 0 {
+	//	return errInvalidDifficulty
+	//}
 	return nil
 }
 
@@ -519,18 +510,18 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 			}
 		}
 		// If there's pending proposals, cast a vote on them
-		if len(addresses) > 0 {
-			header.Coinbase = addresses[rand.Intn(len(addresses))]
-			if a.proposals[header.Coinbase] {
-				copy(header.Nonce[:], nonceAuthVote)
-			} else {
-				copy(header.Nonce[:], nonceDropVote)
-			}
-		}
+		//if len(addresses) > 0 {
+		//	header.Coinbase = addresses[rand.Intn(len(addresses))]
+		//	if a.proposals[header.Coinbase] {
+		//		copy(header.Nonce[:], nonceAuthVote)
+		//	} else {
+		//		copy(header.Nonce[:], nonceDropVote)
+		//	}
+		//}
 		a.lock.RUnlock()
 	}
 	// Set the correct difficulty
-	header.Difficulty = CalcDifficulty(snap, a.signer)
+	header.Difficulty = chain.Config().Aura.Difficulty
 
 	// Ensure the extra data has all it's components
 	if len(header.Extra) < extraVanity {
@@ -600,33 +591,41 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 	signer, signFn := a.signer, a.signFn
 	a.lock.RUnlock()
 
+
+	// check if authorized to sign
+	step := uint64(time.Now().Unix()) % a.config.Period
+	turn := step % uint64(len(a.config.Authorities))
+	if a.signer == a.config.Authorities[turn] {
+		// sign block
+	}
+
 	// Bail out if we're unauthorized to sign a block
-	snap, err := a.snapshot(chain, number-1, header.ParentHash, nil)
-	if err != nil {
-		return err
-	}
-	if _, authorized := snap.Signers[signer]; !authorized {
-		return errUnauthorized
-	}
-	// If we're amongst the recent signers, wait for the next block
-	for seen, recent := range snap.Recents {
-		if recent == signer {
-			// Signer is among recents, only wait if the current block doesn't shift it out
-			if limit := uint64(len(snap.Signers)/2 + 1); number < limit || seen > number-limit {
-				log.Info("Signed recently, must wait for others")
-				return nil
-			}
-		}
-	}
+	// snap, err := a.snapshot(chain, number-1, header.ParentHash, nil)
+	// if err != nil {
+	// 	return err
+	// }
+	// if _, authorized := snap.Signers[signer]; !authorized {
+	// 	return errUnauthorized
+	// }
+	// // If we're amongst the recent signers, wait for the next block
+	// for seen, recent := range snap.Recents {
+	// 	if recent == signer {
+	// 		// Signer is among recents, only wait if the current block doesn't shift it out
+	// 		if limit := uint64(len(snap.Signers)/2 + 1); number < limit || seen > number-limit {
+	// 			log.Info("Signed recently, must wait for others")
+	// 			return nil
+	// 		}
+	// 	}
+	// }
 	// Sweet, the protocol permits us to sign the block, wait for our time
 	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now()) // nolint: gosimple
-	if header.Difficulty.Cmp(diffNoTurn) == 0 {
-		// It's not our turn explicitly to sign, delay it a bit
-		wiggle := time.Duration(len(snap.Signers)/2+1) * wiggleTime
-		delay += time.Duration(rand.Int63n(int64(wiggle)))
-
-		log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
-	}
+	//if header.Difficulty.Cmp(diffNoTurn) == 0 {
+	//	// It's not our turn explicitly to sign, delay it a bit
+	//	wiggle := time.Duration(len(snap.Signers)/2+1) * wiggleTime
+	//	delay += time.Duration(rand.Int63n(int64(wiggle)))
+	//
+	//	log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
+	//}
 	// Sign all the things!
 	sighash, err := signFn(accounts.Account{Address: signer}, sigHash(header).Bytes())
 	if err != nil {
@@ -654,7 +653,7 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 
 // Returns difficulty constant from config
 func (a *Aura) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-	return new(big.Int).SetUint64(chain.Config().Aura.Difficulty)
+	return chain.Config().Aura.Difficulty
 }
 
 // SealHash returns the hash of a block prior to it being sealed.
