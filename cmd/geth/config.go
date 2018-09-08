@@ -109,6 +109,7 @@ func defaultNodeConfig() node.Config {
 
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	fmt.Println("in make Config Node")
+	fmt.Println("check what is happening here")
 	// Load defaults.
 	cfg := gethConfig{
 		Eth:       eth.DefaultConfig,
@@ -116,6 +117,8 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		Node:      defaultNodeConfig(),
 		Dashboard: dashboard.DefaultConfig,
 	}
+
+
 
 	// Load config file.
 	if file := ctx.GlobalString(configFileFlag.Name); file != "" {
@@ -131,6 +134,10 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
 	utils.SetEthConfig(ctx, stack, &cfg.Eth)
+
+	fmt.Printf(" config %v", cfg.Eth.Genesis.Config)
+	fmt.Println("")
+	fmt.Println("chain id ********: ", cfg.Eth.Genesis.Config.ChainID)
 	if ctx.GlobalIsSet(utils.EthStatsURLFlag.Name) {
 		cfg.Ethstats.URL = ctx.GlobalString(utils.EthStatsURLFlag.Name)
 	}
@@ -154,11 +161,11 @@ func enableWhisper(ctx *cli.Context) bool {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	fmt.Println("in make full node")
 	stack, cfg := makeConfigNode(ctx)
-	fmt.Printf("config is ", cfg)
+	//fmt.Printf("config is ", cfg)
 	fmt.Println("")
-	fmt.Printf("config.eth is %v ", cfg.Eth)
+	//fmt.Printf("config.eth is %v ", cfg.Eth)
 	fmt.Println("")
-	fmt.Printf("config.eth genesis is %v", cfg.Eth.Genesis)
+	//fmt.Printf("config.eth genesis is %v", cfg.Eth.Genesis)
 	fmt.Println("")
 
 	utils.RegisterEthService(stack, &cfg.Eth)

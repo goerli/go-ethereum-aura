@@ -161,8 +161,8 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 
 	// Just commit the new block if there is no stored genesis block.
 	stored := rawdb.ReadCanonicalHash(db, 0)
-	fmt.Println("genesis is %+v", genesis)
-	fmt.Println("genesis config is %+v", genesis.Config)
+	//fmt.Println("genesis is %+v", genesis)
+	//fmt.Println("genesis config is %+v", genesis.Config)
 	if (stored == common.Hash{}) {
 		if genesis == nil {
 			log.Info("Writing default main-net genesis block")

@@ -1135,7 +1135,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	setEthash(ctx, cfg)
 	fmt.Println("!!!!!")
 	fmt.Println("this is the rinkebyflag.name ", ctx.GlobalBool(RinkebyFlag.Name))
-	fmt.Println("this is the gorly.name ", ctx.GlobalBool(GoerliFlag.Name))
 
 
 	if ctx.GlobalIsSet(SyncModeFlag.Name) {
@@ -1211,7 +1210,7 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 		cfg.Genesis = core.DefaultTestnetGenesisBlock()
 	case ctx.GlobalBool(GoerliFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 4
+			cfg.NetworkId = 6283
 		}
 		cfg.Genesis = core.DefaultRinkebyGenesisBlock()
 	case ctx.GlobalBool(RinkebyFlag.Name):
