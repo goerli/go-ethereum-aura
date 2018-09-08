@@ -94,6 +94,7 @@ var (
 		Aura: &AuraConfig{
 			Period: 15,
 			Epoch:  30000,
+			Difficulty: 131072,
 		},
 	}
 
