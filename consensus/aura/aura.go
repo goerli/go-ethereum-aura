@@ -508,7 +508,7 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 	if len(header.Extra) < extraVanity {
 		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
 	}
-	header.Extra = header.Extra[:extraVanity]
+	//header.Extra = header.Extra[:extraVanity]
 
 	number := header.Number.Uint64()
 
