@@ -295,7 +295,7 @@ func (a *Aura) verifyHeader(chain consensus.ChainReader, header *types.Header, p
 	}
 	// Ensure that the block's difficulty is correct (it should be constant)
 	if number > 0 {
-		if header.Difficulty != a.config.Difficulty {
+		if header.Difficulty != chain.Config().Aura.Difficulty {
 			return errInvalidDifficulty
 		}
 	}
@@ -521,7 +521,7 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 		a.lock.RUnlock()
 	}
 	// Set the correct difficulty
-	//header.Difficulty = CalcDifficulty(snap, a.signer)
+	header.Difficulty = chain.Config().Aura.Difficulty
 
 	// Ensure the extra data has all it's components
 	if len(header.Extra) < extraVanity {
@@ -645,7 +645,7 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 
 // Returns difficulty constant from config
 func (a *Aura) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-	return a.config.Difficulty
+	return chain.Config().Aura.Difficulty
 }
 
 // SealHash returns the hash of a block prior to it being sealed.

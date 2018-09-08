@@ -384,8 +384,3 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 	}
 	return Rules{ChainID: new(big.Int).Set(chainID), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num), IsByzantium: c.IsByzantium(num)}
 }
-
-// Return diffulty rate for Aura concensus
-func (c *AuraConfig) GetDifficulty() (num *big.Int) {
-	return c.Difficulty
-}
