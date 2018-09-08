@@ -221,10 +221,8 @@ func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainCo
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
-	} else {
-		 if chainConfig.Aura != nil {
+	} else if chainConfig.Aura != nil {
 			return aura.New(chainConfig.Aura, db)
-		}
 	}
 	// Otherwise assume proof-of-work
 	switch config.PowMode {
