@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"runtime"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -151,12 +152,17 @@ func (e *GenesisMismatchError) Error() string {
 //
 // The returned chain configuration is never nil.
 func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+	fmt.Println("in setup genesis")
+	pc, _, _, _ := runtime.Caller(1)
+	fmt.Println("Name of function: " + runtime.FuncForPC(pc).Name())
 	if genesis != nil && genesis.Config == nil {
 		return params.AllEthashProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
 
 	// Just commit the new block if there is no stored genesis block.
 	stored := rawdb.ReadCanonicalHash(db, 0)
+	fmt.Println("genesis is %+v", genesis)
+	fmt.Println("genesis config is %+v", genesis.Config)
 	if (stored == common.Hash{}) {
 		if genesis == nil {
 			log.Info("Writing default main-net genesis block")
@@ -206,6 +212,7 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 }
 
 func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
+	fmt.Println("in config of default")
 	switch {
 	case g != nil:
 		return g.Config

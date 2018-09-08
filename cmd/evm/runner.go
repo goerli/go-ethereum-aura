@@ -70,6 +70,7 @@ func readGenesis(genesisPath string) *core.Genesis {
 }
 
 func runCmd(ctx *cli.Context) error {
+	fmt.Println("running cmd")
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
 	glogger.Verbosity(log.Lvl(ctx.GlobalInt(VerbosityFlag.Name)))
 	log.Root().SetHandler(glogger)
