@@ -98,6 +98,10 @@ var (
 	// their extra-data fields.
 	errExtraSigners = errors.New("non-checkpoint block contains extra signer list")
 
+	// errInvalidValidatorSeal is returned if the extra data field length is not
+	// equal to the length of a seal
+	errInvalidExtraData = errors.New("extra data field in block header is invalid")
+
 	// errInvalidCheckpointSigners is returned if a checkpoint block contains an
 	// invalid list of signers (i.e. non divisible by 20 bytes, or not the correct
 	// ones).
@@ -284,17 +288,10 @@ func (a *Aura) verifyHeader(chain consensus.ChainReader, header *types.Header, p
 	//	return errInvalidVote
 	//}
 
-	// Check that the extra-data contains both the vanity and signature
-	if len(header.Extra) < extraVanity {
-		return errMissingVanity
-	}
-	if len(header.Extra) < extraVanity+extraSeal {
-		return errMissingSignature
-	}
-	// Ensure that the extra-data contains a single
+	// Ensure that the extra-data contains a single signature
 	signersBytes := len(header.Extra) - extraSeal
 	if signersBytes != 0 {
-		return errExtraSigners
+		return errInvalidExtraData
 	}
 	// Ensure that the mix digest is zero as we don't have fork protection currently
 	if header.MixDigest != (common.Hash{}) {
@@ -304,7 +301,7 @@ func (a *Aura) verifyHeader(chain consensus.ChainReader, header *types.Header, p
 	if header.UncleHash != uncleHash {
 		return errInvalidUncleHash
 	}
-	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
+	// Ensure that the block's difficulty is correct (it should be constant)
 	if number > 0 {
 		if header.Difficulty != chain.Config().Difficulty {
 			return errInvalidDifficulty
