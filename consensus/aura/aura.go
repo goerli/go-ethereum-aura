@@ -17,7 +17,6 @@
 package aura
 
 import (
-	"bytes"
 	"errors"
 	"math/big"
 	"sync"
@@ -36,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -47,7 +46,7 @@ const (
 	wiggleTime = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
 )
 
-// Clique proof-of-authority protocol constants.
+// Aura proof-of-authority protocol constants.
 var (
 	epochLength = uint64(30000) // Default number of blocks after which to checkpoint and reset the pending votes
 
@@ -186,8 +185,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	return signer, nil
 }
 
-// Clique is the proof-of-authority consensus engine proposed to support the
-// Ethereum testnet following the Ropsten attacks.
+// AuRa is a proof-of-authority consensus algorithm first implemented in the Parity ethereum client.
 type Aura struct {
 	config *params.AuraConfig // Consensus engine configuration parameters
 	db     ethdb.Database       // Database to store and retrieve snapshot checkpoints
@@ -487,18 +485,18 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 	header.Difficulty = chain.Config().Aura.Difficulty
 
 	// Ensure the extra data has all it's components
-	if len(header.Extra) < extraVanity {
-		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
-	}
+	//if len(header.Extra) < extraVanity {
+	//	header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
+	//}
 	//header.Extra = header.Extra [:extraVanity]
 
 	number := header.Number.Uint64()
 
-	if number%a.config.Epoch == 0 {
+	//if number%a.config.Epoch == 0 {
 		//for _, signer := range snap.signers() {
 		//	header.Extra = append(header.Extra, signer[:]...)
 		//}
-	}
+	//}
 	header.Extra = append(header.Extra, make([]byte, extraSeal)...)
 
 	// Mix digest is reserved for now, set to empty
@@ -631,7 +629,7 @@ func (a *Aura) SealHash(header *types.Header) common.Hash {
 	return sigHash(header)
 }
 
-// Close implements consensus.Engine. It's a noop for clique as there is are no background threads.
+// Close implements consensus.Engine.
 func (a *Aura) Close() error {
 	return nil
 }
@@ -640,7 +638,7 @@ func (a *Aura) Close() error {
 // controlling the signer voting.
 func (a *Aura) APIs(chain consensus.ChainReader) []rpc.API {
 	return []rpc.API{{
-		Namespace: "clique",
+		Namespace: "aura",
 		Version:   "1.0",
 		Service:   &API{chain: chain, aura: a},
 		Public:    false,
