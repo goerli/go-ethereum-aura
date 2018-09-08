@@ -92,8 +92,6 @@ var (
 		ByzantiumBlock:      big.NewInt(0),
 		ConstantinopleBlock: nil,
 		Aura: &AuraConfig{
-			Period: 4,
-			Epoch:  30000,
 			Authorities: []common.Address{
 				common.HexToAddress("0x0082a7bf6aaadab094061747872243059c3c6a07"),
 				common.HexToAddress("0x00faa37564140c1a5e96095f05466b9f73441e44"),
