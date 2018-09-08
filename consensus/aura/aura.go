@@ -351,82 +351,82 @@ func (a *Aura) verifyCascadingFields(chain consensus.ChainReader, header *types.
 }
 
 // snapshot retrieves the authorization snapshot at a given point in time.
-func (a *Aura) snapshot(chain consensus.ChainReader, number uint64, hash common.Hash, parents []*types.Header) (*Snapshot, error) {
-	// Search for a snapshot in memory or on disk for checkpoints
-	var (
-		headers []*types.Header
-		snap    *Snapshot
-	)
-	for snap == nil {
-		// If an in-memory snapshot was found, use that
-		if s, ok := a.recents.Get(hash); ok {
-			snap = s.(*Snapshot)
-			break
-		}
-		// If an on-disk checkpoint snapshot can be found, use that
-		if number%checkpointInterval == 0 {
-			if s, err := loadSnapshot(a.config, a.signatures, a.db, hash); err == nil {
-				log.Trace("Loaded voting snapshot from disk", "number", number, "hash", hash)
-				snap = s
-				break
-			}
-		}
-		// If we're at an checkpoint block, make a snapshot if it's known
-		if number%a.config.Epoch == 0 {
-			checkpoint := chain.GetHeaderByNumber(number)
-			if checkpoint != nil {
-				hash := checkpoint.Hash()
-
-				signers := make([]common.Address, (len(checkpoint.Extra)-extraVanity-extraSeal)/common.AddressLength)
-				for i := 0; i < len(signers); i++ {
-					copy(signers[i][:], checkpoint.Extra[extraVanity+i*common.AddressLength:])
-				}
-				snap = newSnapshot(a.config, a.signatures, number, hash, signers)
-				if err := snap.store(a.db); err != nil {
-					return nil, err
-				}
-				log.Info("Stored checkpoint snapshot to disk", "number", number, "hash", hash)
-				break
-			}
-		}
-		// No snapshot for this header, gather the header and move backward
-		var header *types.Header
-		if len(parents) > 0 {
-			// If we have explicit parents, pick from there (enforced)
-			header = parents[len(parents)-1]
-			if header.Hash() != hash || header.Number.Uint64() != number {
-				return nil, consensus.ErrUnknownAncestor
-			}
-			parents = parents[:len(parents)-1]
-		} else {
-			// No explicit parents (or no more left), reach out to the database
-			header = chain.GetHeader(hash, number)
-			if header == nil {
-				return nil, consensus.ErrUnknownAncestor
-			}
-		}
-		headers = append(headers, header)
-		number, hash = number-1, header.ParentHash
-	}
-	// Previous snapshot found, apply any pending headers on top of it
-	for i := 0; i < len(headers)/2; i++ {
-		headers[i], headers[len(headers)-1-i] = headers[len(headers)-1-i], headers[i]
-	}
-	snap, err := snap.apply(headers)
-	if err != nil {
-		return nil, err
-	}
-	a.recents.Add(snap.Hash, snap)
-
-	// If we've generated a new checkpoint snapshot, save to disk
-	if snap.Number%checkpointInterval == 0 && len(headers) > 0 {
-		if err = snap.store(a.db); err != nil {
-			return nil, err
-		}
-		log.Trace("Stored voting snapshot to disk", "number", snap.Number, "hash", snap.Hash)
-	}
-	return snap, err
-}
+//func (a *Aura) snapshot(chain consensus.ChainReader, number uint64, hash common.Hash, parents []*types.Header) (*Snapshot, error) {
+//	// Search for a snapshot in memory or on disk for checkpoints
+//	var (
+//		headers []*types.Header
+//		snap    *Snapshot
+//	)
+//	for snap == nil {
+//		// If an in-memory snapshot was found, use that
+//		if s, ok := a.recents.Get(hash); ok {
+//			snap = s.(*Snapshot)
+//			break
+//		}
+//		// If an on-disk checkpoint snapshot can be found, use that
+//		if number%checkpointInterval == 0 {
+//			if s, err := loadSnapshot(a.config, a.signatures, a.db, hash); err == nil {
+//				log.Trace("Loaded voting snapshot from disk", "number", number, "hash", hash)
+//				snap = s
+//				break
+//			}
+//		}
+//		// If we're at an checkpoint block, make a snapshot if it's known
+//		if number%a.config.Epoch == 0 {
+//			checkpoint := chain.GetHeaderByNumber(number)
+//			if checkpoint != nil {
+//				hash := checkpoint.Hash()
+//
+//				signers := make([]common.Address, (len(checkpoint.Extra)-extraVanity-extraSeal)/common.AddressLength)
+//				for i := 0; i < len(signers); i++ {
+//					copy(signers[i][:], checkpoint.Extra[extraVanity+i*common.AddressLength:])
+//				}
+//				snap = newSnapshot(a.config, a.signatures, number, hash, signers)
+//				if err := snap.store(a.db); err != nil {
+//					return nil, err
+//				}
+//				log.Info("Stored checkpoint snapshot to disk", "number", number, "hash", hash)
+//				break
+//			}
+//		}
+//		// No snapshot for this header, gather the header and move backward
+//		var header *types.Header
+//		if len(parents) > 0 {
+//			// If we have explicit parents, pick from there (enforced)
+//			header = parents[len(parents)-1]
+//			if header.Hash() != hash || header.Number.Uint64() != number {
+//				return nil, consensus.ErrUnknownAncestor
+//			}
+//			parents = parents[:len(parents)-1]
+//		} else {
+//			// No explicit parents (or no more left), reach out to the database
+//			header = chain.GetHeader(hash, number)
+//			if header == nil {
+//				return nil, consensus.ErrUnknownAncestor
+//			}
+//		}
+//		headers = append(headers, header)
+//		number, hash = number-1, header.ParentHash
+//	}
+//	// Previous snapshot found, apply any pending headers on top of it
+//	for i := 0; i < len(headers)/2; i++ {
+//		headers[i], headers[len(headers)-1-i] = headers[len(headers)-1-i], headers[i]
+//	}
+//	snap, err := snap.apply(headers)
+//	if err != nil {
+//		return nil, err
+//	}
+//	a.recents.Add(snap.Hash, snap)
+//
+//	// If we've generated a new checkpoint snapshot, save to disk
+//	if snap.Number%checkpointInterval == 0 && len(headers) > 0 {
+//		if err = snap.store(a.db); err != nil {
+//			return nil, err
+//		}
+//		log.Trace("Stored voting snapshot to disk", "number", snap.Number, "hash", snap.Hash)
+//	}
+//	return snap, err
+//}
 
 // VerifyUncles implements consensus.Engine, always returning an error for any
 // uncles as this consensus mechanism doesn't permit uncles.
@@ -472,25 +472,7 @@ func (a *Aura) verifySeal(chain consensus.ChainReader, header *types.Header, par
 		// not authorized to sign
 		return errUnauthorized
 	}
-	// if _, ok := snap.Signers[signer]; !ok {
-	// 	return errUnauthorized
-	// }
-	// for seen, recent := range snap.Recents {
-	// 	if recent == signer {
-	// 		// Signer is among recents, only fail if the current block doesn't shift it out
-	// 		if limit := uint64(len(snap.Signers)/2 + 1); seen > number-limit {
-	// 			return errUnauthorized
-	// 		}
-	// 	}
-	// }
-	// Ensure that the difficulty corresponds to the turn-ness of the signer
-	//inturn := snap.inturn(header.Number.Uint64(), signer)
-	//if inturn && header.Difficulty.Cmp(diffInTurn) != 0 {
-	//	return errInvalidDifficulty
-	//}
-	//if !inturn && header.Difficulty.Cmp(diffNoTurn) != 0 {
-	//	return errInvalidDifficulty
-	//}
+
 	return nil
 }
 
@@ -499,7 +481,7 @@ func (a *Aura) verifySeal(chain consensus.ChainReader, header *types.Header, par
 func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	// If the block isn't a checkpoint, cast a random vote (good enough for now)
 	header.Coinbase = common.Address{}
-	header.Nonce = types.BlockNonce{}
+	//header.Nonce = types.BlockNonce{}
 
 	// Set the correct difficulty
 	header.Difficulty = chain.Config().Aura.Difficulty
@@ -508,7 +490,7 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 	if len(header.Extra) < extraVanity {
 		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
 	}
-	//header.Extra = header.Extra[:extraVanity]
+	//header.Extra = header.Extra [:extraVanity]
 
 	number := header.Number.Uint64()
 
@@ -542,6 +524,8 @@ func (a *Aura) Finalize(chain consensus.ChainReader, header *types.Header, state
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)
 
+	//data := []byte{} // previous seal
+	//emptyBlockMessage := types.NewMessage(a.signer, nil, nil, big.NewInt(0), 0, 0, data)
 	// Assemble and return the final block for sealing
 	return types.NewBlock(header, txs, nil, receipts), nil
 }
