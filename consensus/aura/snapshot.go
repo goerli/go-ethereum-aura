@@ -17,15 +17,15 @@
 package aura
 
 import (
-"bytes"
-"encoding/json"
-"sort"
+	"bytes"
+	"encoding/json"
+	"sort"
 
-"github.com/ethereum/go-ethereum/common"
-"github.com/ethereum/go-ethereum/core/types"
-"github.com/ethereum/go-ethereum/ethdb"
-"github.com/ethereum/go-ethereum/params"
-lru "github.com/hashicorp/golang-lru"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/params"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 // Vote represents a single vote that an authorized signer made to modify the
@@ -47,7 +47,7 @@ type Tally struct {
 // Snapshot is the state of the authorization voting at a given point in time.
 type Snapshot struct {
 	config   *params.AuraConfig // Consensus engine parameters to fine tune behavior
-	sigcache *lru.ARCCache        // Cache of recent block signatures to speed up ecrecover
+	sigcache *lru.ARCCache      // Cache of recent block signatures to speed up ecrecover
 
 	Number  uint64                      `json:"number"`  // Block number where the snapshot was created
 	Hash    common.Hash                 `json:"hash"`    // Block hash where the snapshot was created
@@ -310,4 +310,3 @@ func (s *Snapshot) inturn(number uint64, signer common.Address) bool {
 	}
 	return (number % uint64(len(signers))) == uint64(offset)
 }
-

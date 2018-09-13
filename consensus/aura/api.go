@@ -17,17 +17,17 @@
 package aura
 
 import (
-"github.com/ethereum/go-ethereum/common"
-"github.com/ethereum/go-ethereum/consensus"
-"github.com/ethereum/go-ethereum/core/types"
-"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 // API is a user facing RPC API to allow controlling the signer and voting
 // mechanisms of the proof-of-authority scheme.
 type API struct {
-	chain  consensus.ChainReader
-	aura *Aura
+	chain consensus.ChainReader
+	aura  *Aura
 }
 
 // GetSnapshot retrieves the state snapshot at a given block.

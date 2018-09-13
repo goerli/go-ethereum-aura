@@ -235,7 +235,6 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	}
 	root := statedb.IntermediateRoot(false)
 
-
 	head := &types.Header{
 		Number:     new(big.Int).SetUint64(g.Number),
 		Nonce:      types.EncodeNonce(g.Nonce),
@@ -261,7 +260,7 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	if g.Difficulty == nil {
 		head.Difficulty = params.GenesisDifficulty
 	}
-	data,_ := rlp.EncodeToBytes(head)
+	data, _ := rlp.EncodeToBytes(head)
 	fmt.Printf("Genesis header rlp %v\n", common.Bytes2Hex(data))
 
 	statedb.Commit(false)

@@ -172,7 +172,7 @@ type AuraConfig struct {
 	Epoch       uint64           `json:"epoch"`       // Epoch length to reset votes and checkpoint
 	Authorities []common.Address `json:"authorities"` // list of addresses of authorities
 	Difficulty  *big.Int         `json:"difficulty"`  // Constant block difficulty
-	Signatures   Signatures           `json:"signatures"`
+	Signatures  Signatures       `json:"signatures"`
 }
 
 // String implements the stringer interface, returning the consensus engine details.
