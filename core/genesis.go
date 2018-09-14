@@ -234,8 +234,6 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		}
 	}
 	root := statedb.IntermediateRoot(false)
-
-
 	head := &types.Header{
 		Number:     new(big.Int).SetUint64(g.Number),
 		Nonce:      types.EncodeNonce(g.Nonce),
@@ -261,7 +259,9 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	if g.Difficulty == nil {
 		head.Difficulty = params.GenesisDifficulty
 	}
-	data,_ := rlp.EncodeToBytes(head)
+
+	// Debugging RLP Header, please delete this part when production
+	data, _ := rlp.EncodeToBytes(head)
 	fmt.Printf("Genesis header rlp %v\n", common.Bytes2Hex(data))
 
 	statedb.Commit(false)
@@ -344,13 +344,10 @@ func DefaultRinkebyGenesisBlock() *Genesis {
 	}
 }
 
-//Need alloc data
 // DefaultGoerliGenesisBlock returns the Goerli network genesis block.
 func DefaultGoerliGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.GoerliChainConfig,
-		Timestamp:  0,
-		ExtraData:  hexutil.MustDecode("0x"),
 		GasLimit:   6000000,
 		Difficulty: big.NewInt(131072),
 		Alloc:      decodePrealloc(goerliAllocData),

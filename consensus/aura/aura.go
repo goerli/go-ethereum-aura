@@ -190,7 +190,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 // Ethereum testnet following the Ropsten attacks.
 type Aura struct {
 	config *params.AuraConfig // Consensus engine configuration parameters
-	db     ethdb.Database       // Database to store and retrieve snapshot checkpoints
+	db     ethdb.Database     // Database to store and retrieve snapshot checkpoints
 
 	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
 	signatures *lru.ARCCache // Signatures of recent blocks to speed up mining
@@ -537,7 +537,7 @@ func (a *Aura) Prepare(chain consensus.ChainReader, header *types.Header) error 
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
 func (a *Aura) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	state.AddBalance(a.signer, big.NewInt(5 * (10 ^ 18)))
+	state.AddBalance(a.signer, big.NewInt(5*(10^18)))
 	// No block rewards in PoA, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)
@@ -574,7 +574,6 @@ func (a *Aura) Seal(chain consensus.ChainReader, block *types.Block, results cha
 	a.lock.RLock()
 	signer, signFn := a.signer, a.signFn
 	a.lock.RUnlock()
-
 
 	// check if authorized to sign
 	step := uint64(time.Now().Unix()) % a.config.Period
