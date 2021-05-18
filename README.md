@@ -12,6 +12,10 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 Automated builds are available for stable releases and the unstable master branch.
 Binary archives are published at https://geth.ethereum.org/downloads/.
 
+<p align="center">
+  <img src="go-ethereum-lang.jpeg" alt="demo" />
+</p> 
+
 ## Building the source
 
 For prerequisites and detailed build instructions please read the
